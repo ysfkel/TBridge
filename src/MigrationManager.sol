@@ -28,7 +28,7 @@ contract MigrationMinager is AccessControl{
      * 
      * @param amount amount to transfer 
      */
-    function deposit(uint256 amount, address ) external {
+    function deposit(uint256 amount) external {
        _deposit(amount, msg.sender);
     }
 
