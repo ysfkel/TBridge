@@ -23,7 +23,11 @@ contract MigrationMinager is AccessControl{
         _grantRole(BURNER_ROLE, burner);
         migrationToken = IFWBToken(_migrationToken);
     }
-
+     
+    /**
+     * 
+     * @param amount amount to transfer 
+     */
     function deposit(uint256 amount, address ) external {
        _deposit(amount, msg.sender);
     }
