@@ -42,7 +42,7 @@ contract MigrationMinager is AccessControl{
 
     function _deposit(uint256 amount, address to ) private {
        deposits[msg.sender] += amount;
-       depositsTo[msg.sender][msg.sender] += amount;
+       depositsTo[msg.sender][to] += amount;
        migrationToken.transferFrom(msg.sender, address(this), amount);
        emit Deposit(msg.sender, to, amount);
     }
