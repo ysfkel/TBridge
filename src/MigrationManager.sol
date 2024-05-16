@@ -13,7 +13,7 @@ contract MigrationMinager is Ownable{
     IFWBToken public migrationToken;
 
     constructor(address _migrationToken) Ownable(msg.sender) {
-        require(_migrationToken != address(0), "0x0__token");
+        require(_migrationToken != address(0), "0x0__migrationToken");
         migrationToken = IFWBToken(_migrationToken);
     }
      
