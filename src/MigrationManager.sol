@@ -2,25 +2,19 @@
 pragma solidity ^0.8.13;
  
 import "./IFWBToken.sol";
-import "@openzeppelin/access/AccessControl.sol";
+import "@openzeppelin/access/Ownable.sol";
 
-contract MigrationMinager is AccessControl{
+contract MigrationMinager is Ownable{
 
     event Deposit(address account, address recipient, uint256 amount);
 
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-
-    address public owner;
     mapping(address => uint256) public deposits;
     mapping(address from => mapping(address to =>  uint256 amount)) public depositsTo;
     IFWBToken public migrationToken;
 
-    constructor(address _migrationToken,  address burner) {
+    constructor(address _migrationToken,  address burner) Ownable(msg.sender) {
         require(_migrationToken != address(0), "0x0 token");
-        require(burner != address(0), "0x0 token");
-       
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(BURNER_ROLE, burner);
+        require(burner != address(0), "0x0 token"); 
         migrationToken = IFWBToken(_migrationToken);
     }
      
@@ -36,7 +30,7 @@ contract MigrationMinager is AccessControl{
        _deposit(amount, to);
     }
 
-    function burn(uint256 amount) public onlyRole(BURNER_ROLE) {
+    function burn(uint256 amount) public onlyOwner() {
         migrationToken.burn(amount);
     } 
 
