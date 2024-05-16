@@ -12,9 +12,8 @@ contract MigrationMinager is Ownable{
     mapping(address from => mapping(address to =>  uint256 amount)) public depositsTo;
     IFWBToken public migrationToken;
 
-    constructor(address _migrationToken,  address burner) Ownable(msg.sender) {
-        require(_migrationToken != address(0), "0x0 token");
-        require(burner != address(0), "0x0 token"); 
+    constructor(address _migrationToken) Ownable(msg.sender) {
+        require(_migrationToken != address(0), "0x0__token");
         migrationToken = IFWBToken(_migrationToken);
     }
      
