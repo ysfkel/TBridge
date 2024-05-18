@@ -1,9 +1,10 @@
 pragma solidity ^0.8.13;
 
-import "@openzeppelin/token/ERC20/IERC20.sol";
+import "./IFWBToken.sol";
+import "@openzeppelin/access/Ownable.sol";
 
-contract MigrationManager {
-    IERC20 public fwbToken;
+contract MigrationManager is Ownable {
+    IFWBToken public fwbToken;
     uint256 public depositCount;
 
     struct DepositInfo {
@@ -16,9 +17,9 @@ contract MigrationManager {
 
     event Deposit(address indexed depositor, address indexed recipient, uint256 amount, uint256 depositId);
 
-    constructor(address _fwbToken) {
+    constructor(address _fwbToken) Ownable(msg.sender) {
         require(_fwbToken != address(0), "MigrationManager: invalid token address");
-        fwbToken = IERC20(_fwbToken);
+        fwbToken = IFWBToken(_fwbToken);
     }
 
     /**
@@ -47,8 +48,16 @@ contract MigrationManager {
      */
     function getDeposit(uint256 depositId) external view returns (address depositor, address recipient, uint256 amount) {
         require(depositId < depositCount, "MigrationManager: invalid deposit ID");
-        DepositInfo storage depositInfo = deposits[depositId];
-        return (depositInfo.depositor, depositInfo.recipient, depositInfo.amount);
+        DepositInfo storage deposit = deposits[depositId];
+        return (deposit.depositor, deposit.recipient, deposit.amount);
+    }
+
+    /**
+     * @notice Burns a specified amount of tokens. Only the contract owner can call this function.
+     * @param amount The amount of tokens to burn.
+     */
+    function burn(uint256 amount) external onlyOwner {
+        fwbToken.burn(amount);
     }
 
     function _deposit(address from, uint256 amount, address recipient) internal {
