@@ -7,6 +7,8 @@ import { IFWBToken } from "../src/IFWBToken.sol";
 import { TestToken } from "./TestToken.sol";
 
 contract MigrationManagerTest is Test {
+    event Deposit(address indexed account, address indexed recipient, uint256 amount);
+    
     MigrationManager mm;
     TestToken fwb;
     address USER1 =  makeAddr("USER1");
@@ -24,6 +26,8 @@ contract MigrationManagerTest is Test {
     function test_deposit_succeeds()  public  {
         vm.startPrank(msg.sender);
         fwb.approve(address(mm), 100 ether);
+        vm.expectEmit(true, true, true, true);
+        emit Deposit(msg.sender, msg.sender, 100 ether);
         mm.deposit(100 ether);
         assertEq(mm.deposits(msg.sender), 100 ether);
         assertEq(mm.depositsTo(msg.sender,msg.sender), 100 ether);
@@ -34,6 +38,8 @@ contract MigrationManagerTest is Test {
     function test_deposit_to_succeeds()  public  {
         vm.startPrank(msg.sender);
         fwb.approve(address(mm), 100 ether);
+        vm.expectEmit(true, true, true, true);
+        emit Deposit(msg.sender, USER1, 100 ether);
         mm.depositTo(100 ether, USER1);
         assertEq(mm.deposits(msg.sender), 100 ether);
         assertEq(mm.depositsTo(msg.sender, USER1), 100 ether);

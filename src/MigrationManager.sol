@@ -6,7 +6,7 @@ import "@openzeppelin/access/Ownable.sol";
 
 contract MigrationManager is Ownable{
 
-    event Deposit(address account, address recipient, uint256 amount);
+    event Deposit(address indexed account, address indexed recipient, uint256 amount);
     
     uint256 public totalDeposits;
     mapping(address => uint256) public deposits;
