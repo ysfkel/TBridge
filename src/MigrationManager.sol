@@ -4,10 +4,11 @@ pragma solidity ^0.8.13;
 import "./IFWBToken.sol";
 import "@openzeppelin/access/Ownable.sol";
 
-contract MigrationMinager is Ownable{
+contract MigrationManager is Ownable{
 
     event Deposit(address account, address recipient, uint256 amount);
-
+    
+    uint256 public totalDeposits;
     mapping(address => uint256) public deposits;
     mapping(address from => mapping(address to =>  uint256 amount)) public depositsTo;
     IFWBToken public migrationToken;
@@ -17,10 +18,6 @@ contract MigrationMinager is Ownable{
         migrationToken = IFWBToken(_migrationToken);
     }
      
-    /**
-     * 
-     * @param amount amount to transfer 
-     */
     function deposit(uint256 amount) external {
        _deposit(amount, msg.sender);
     }
@@ -34,6 +31,7 @@ contract MigrationMinager is Ownable{
     } 
 
     function _deposit(uint256 amount, address to ) private {
+       totalDeposits +=amount;
        deposits[msg.sender] += amount;
        depositsTo[msg.sender][to] += amount;
        migrationToken.transferFrom(msg.sender, address(this), amount);
