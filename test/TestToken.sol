@@ -9,5 +9,9 @@ contract TestToken is ERC20("test", "test") {
         _mint(account, amount);
     }
 
-
+    function burn(uint256 value) external {
+       _burn(  msg.sender,  value);
+    }
 }
+
+ 

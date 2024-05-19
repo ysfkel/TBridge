@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {Ownable} from "@openzeppelin/access/Ownable.sol";
 import {Test, console} from "forge-std/Test.sol";
 import { MigrationManager } from "../src/MigrationManager.sol";
 import { IFWBToken } from "../src/IFWBToken.sol";
@@ -12,10 +13,13 @@ contract MigrationManagerTest is Test {
     MigrationManager mm;
     TestToken fwb;
     address USER1 =  makeAddr("USER1");
+    address USER2 =  makeAddr("USER2");
 
     function setUp() public {
         fwb = new TestToken();
         fwb.mint(msg.sender, 1000 ether);
+        fwb.mint(USER1, 1000 ether);
+        fwb.mint(USER2, 1000 ether);
         mm = new MigrationManager(address(fwb));
     }
 
@@ -72,4 +76,46 @@ contract MigrationManagerTest is Test {
         assertEq(_fwb.balanceOf(address(_mm)), amount);
         vm.stopPrank();
     }
+
+    function test_burn_fails_with_OwnableUnauthorizedAccount()  public  {
+        TestToken _fwb;
+        MigrationManager _mm;
+        // Initializations
+        vm.startPrank(msg.sender);
+        _fwb = new TestToken();
+        _fwb.mint(USER1, 100 ether);
+        _mm = new MigrationManager(address(_fwb));
+        vm.stopPrank();
+        // deposit amount
+        vm.startPrank(USER1);
+        _fwb.approve(address(_mm), 100 ether);
+        _mm.deposit(100 ether);
+        vm.stopPrank();
+        // burn amount
+        vm.startPrank(USER2);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, USER2));
+        _mm.burn(100 ether);
+        vm.stopPrank();
+    } 
+
+    function test_burn_succeeds()  public  {
+        TestToken _fwb;
+        MigrationManager _mm;
+        // Initializations
+        vm.startPrank(USER1);
+        _fwb = new TestToken();
+        _fwb.mint(USER2, 100 ether);
+        _mm = new MigrationManager(address(_fwb));
+        vm.stopPrank();
+        // deposit amount
+        vm.startPrank(USER2);
+        _fwb.approve(address(_mm), 100 ether);
+        _mm.deposit(100 ether);
+        vm.stopPrank();
+        // burn amount
+        vm.startPrank(USER1);
+        _mm.burn(100 ether);
+        assertEq(_fwb.balanceOf(address(_mm)), 0);
+        vm.stopPrank();
+    } 
 }
