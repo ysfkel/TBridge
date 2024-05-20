@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MigrationDistributor {
-    
     error MigrationDistributor__OnlyOwner();
     error MigrationDistributor__DepositNotFound(uint256 depositId);
     error MigrationDistributor__TokensAlreadyDistributed(uint256 depositId);
@@ -16,7 +15,7 @@ contract MigrationDistributor {
     event RecordDeposit(uint256 depositId, address recipient, uint256 amount);
     event DistributeTokens(uint256 depositId, address recipient, uint256 amount);
 
-    uint256  _depositCount;
+    uint256 _depositCount;
     IERC20 public baseToken;
     address public owner;
     address public migrationRecorder;
@@ -29,25 +28,25 @@ contract MigrationDistributor {
         bool processed;
     }
 
-    mapping(uint256  => Deposit) public deposits;
-    mapping(address =>  uint256[]) public userDepositIds;
+    mapping(uint256 => Deposit) public deposits;
+    mapping(address => uint256[]) public userDepositIds;
 
     modifier onlyOwner() {
-        if(msg.sender != owner) {
+        if (msg.sender != owner) {
             revert MigrationDistributor__OnlyOwner();
         }
         _;
     }
 
     modifier onlyMigrationRecorder() {
-        if(msg.sender != migrationRecorder) {
+        if (msg.sender != migrationRecorder) {
             revert MigrationDistributor__OnlyMigrationRecorder();
         }
         _;
     }
 
     modifier onlyMigrationProcessor() {
-        if(msg.sender != migrationProcessor) {
+        if (msg.sender != migrationProcessor) {
             revert MigrationDistributor__OnlyMigrationProcessor();
         }
         _;
@@ -61,10 +60,13 @@ contract MigrationDistributor {
         conversionRate = _conversionRate;
     }
 
-    function recordDeposit(uint256 depositId, address recipient, uint256 amount) external onlyMigrationRecorder returns (uint256) {
-        
-        if(deposits[depositId].recipient != address(0)) { 
-           revert MigrationDistributor__DepositExists(depositId);
+    function recordDeposit(uint256 depositId, address recipient, uint256 amount)
+        external
+        onlyMigrationRecorder
+        returns (uint256)
+    {
+        if (deposits[depositId].recipient != address(0)) {
+            revert MigrationDistributor__DepositExists(depositId);
         }
 
         uint256 baseAmount = amount * conversionRate;
@@ -76,18 +78,18 @@ contract MigrationDistributor {
 
     function distributeTokens(uint256 depositId) external onlyMigrationProcessor {
         Deposit memory deposit = deposits[depositId];
-        if(deposit.recipient == address(0)) {
+        if (deposit.recipient == address(0)) {
             revert MigrationDistributor__DepositNotFound(depositId);
         }
 
-        if(deposit.processed) {
+        if (deposit.processed) {
             revert MigrationDistributor__DepositNotFound(depositId);
         }
 
-        if(baseToken.transfer(deposit.recipient, deposit.amount) == false) {
-           revert MigrationDistributor__TransferFailed(deposit.recipient, deposit.amount);
+        if (baseToken.transfer(deposit.recipient, deposit.amount) == false) {
+            revert MigrationDistributor__TransferFailed(deposit.recipient, deposit.amount);
         }
-        
+
         deposits[depositId].processed = true;
 
         emit DistributeTokens(depositId, deposit.recipient, deposit.amount);
@@ -106,7 +108,7 @@ contract MigrationDistributor {
         migrationProcessor = newMigrationProcessor;
     }
 
-    function getDepositCount() public view returns (uint256) { 
+    function getDepositCount() public view returns (uint256) {
         return _depositCount;
     }
 }

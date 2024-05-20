@@ -16,7 +16,7 @@ pragma solidity ^0.8.13;
 //     address USER2 =  makeAddr("USER2");
 //     address migrationRecorder =  makeAddr("migrationRecorder");
 //     address migrationProcessor =  makeAddr("migrationProcessor");
-     
+
 //     function setUp() public {
 //         fwb = new TestToken();
 //         fwb.mint(msg.sender, 1000 ether);
@@ -30,14 +30,14 @@ pragma solidity ^0.8.13;
 //         assertEq(address(md.migrationRecorder()), migrationRecorder);
 //         assertEq(address(md.migrationProcessor()), migrationProcessor);
 //         assertEq(md.conversionRate(), conversionRate);
-//     } 
+//     }
 
 //     function test_recordDeposit_reverts_with_MigrationDistributor__OnlyMigrationRecorder()  public  {
 //         vm.startPrank(msg.sender);
 //         vm.expectRevert(MigrationDistributor.MigrationDistributor__OnlyMigrationRecorder.selector);
 //         md.recordDeposit(USER1, 100 ether);
-//         vm.stopPrank(); 
-//     } 
+//         vm.stopPrank();
+//     }
 
 //     function test_recordDeposit_succeeds()  public  {
 //         vm.startPrank(migrationRecorder);
@@ -48,6 +48,6 @@ pragma solidity ^0.8.13;
 //         assertEq(md.getDepositCount(), 1);
 //         MigrationDistributor.Deposit memory deposit = md.getDeposit(0);
 //         assertEq(deposit.amount, amount * conversionRate);
-//         vm.stopPrank(); 
-//     } 
+//         vm.stopPrank();
+//     }
 // }
