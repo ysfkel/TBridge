@@ -17,7 +17,7 @@ contract MigrationManager is Ownable{
 
     mapping(address => uint256) public deposits;
     mapping(address => address[]) public recipients;
-    mapping(address from => mapping(address to =>  UserDeposit[])) public depositsTo;
+    mapping(address from => mapping(address to =>  UserDeposit[])) private depositsTo;
     IFWBToken public migrationToken;
 
     constructor(address _migrationToken) Ownable(msg.sender) {
@@ -54,7 +54,8 @@ contract MigrationManager is Ownable{
        emit Deposit(msg.sender, to, amount);
     }
 
-}
+    function getUserDeposits(address from, address to ) external view returns(UserDeposit[] memory) {
+       return depositsTo[from][to];
+    }
 
-//R / W ./ R / 
-//R / R /  W 
+}

@@ -26,6 +26,7 @@ contract MigrationManagerTest is Test {
     function test_constructor() view public  {
         assertEq(address(mm.migrationToken()), address(fwb));
     } 
+    
 
     function test_deposit_succeeds()  public  {
         vm.startPrank(msg.sender);
@@ -34,7 +35,10 @@ contract MigrationManagerTest is Test {
         emit Deposit(msg.sender, msg.sender, 100 ether);
         mm.deposit(100 ether);
         assertEq(mm.deposits(msg.sender), 100 ether);
-        assertEq(mm.depositsTo(msg.sender,msg.sender), 100 ether);
+        MigrationManager.UserDeposit[] memory userDeposits = mm.getUserDeposits(msg.sender, msg.sender);
+        assertEq(userDeposits.length, 1);
+        assertEq(userDeposits[0].amount, 100 ether);
+        assertEq(userDeposits[0].recipient, msg.sender);        
         assertEq(fwb.balanceOf(address(mm)), 100 ether);
         vm.stopPrank();
     } 
@@ -45,8 +49,11 @@ contract MigrationManagerTest is Test {
         vm.expectEmit(true, true, true, true);
         emit Deposit(msg.sender, USER1, 100 ether);
         mm.depositTo(100 ether, USER1);
-        assertEq(mm.deposits(msg.sender), 100 ether);
-        assertEq(mm.depositsTo(msg.sender, USER1), 100 ether);
+        assertEq(mm.deposits(msg.sender), 100 ether); 
+        MigrationManager.UserDeposit[] memory userDeposits = mm.getUserDeposits(msg.sender, USER1);
+        assertEq(userDeposits.length, 1);
+        assertEq(userDeposits[0].amount, 100 ether);
+        assertEq(userDeposits[0].recipient, USER1); 
         assertEq(fwb.balanceOf(address(mm)), 100 ether);
         vm.stopPrank();
     } 
@@ -54,13 +61,18 @@ contract MigrationManagerTest is Test {
     function test_multiple_deposit_succeeds()  public  {
         vm.startPrank(msg.sender);
         fwb.mint(msg.sender, 1000 ether);
-        fwb.approve(address(mm), 300 ether);
+        fwb.approve(address(mm), 1000 ether);
         mm.deposit(100 ether);
-        mm.deposit(100 ether);
-        mm.deposit(100 ether);
-        assertEq(mm.deposits(msg.sender), 300 ether);
-        assertEq(mm.depositsTo(msg.sender,msg.sender), 300 ether);
-        assertEq(fwb.balanceOf(address(mm)), 300 ether);
+        mm.deposit(200 ether);
+        mm.deposit(300 ether);
+        assertEq(mm.deposits(msg.sender), 600 ether);
+        MigrationManager.UserDeposit[] memory userDeposits = mm.getUserDeposits(msg.sender, msg.sender);
+        assertEq(userDeposits.length, 3);
+        assertEq(userDeposits[0].amount, 100 ether);
+        assertEq(userDeposits[1].amount, 200 ether);
+        assertEq(userDeposits[2].amount, 300 ether);
+        assertEq(userDeposits[0].recipient, msg.sender);  
+        assertEq(fwb.balanceOf(address(mm)), 600 ether);
         vm.stopPrank();
     } 
 
@@ -72,7 +84,6 @@ contract MigrationManagerTest is Test {
         _fwb.approve(address(_mm), amount);
         _mm.deposit(amount);
         assertEq(_mm.deposits(msg.sender), amount);
-        assertEq(_mm.depositsTo(msg.sender,msg.sender), amount);
         assertEq(_fwb.balanceOf(address(_mm)), amount);
         vm.stopPrank();
     }
