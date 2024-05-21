@@ -87,7 +87,7 @@ contract MigrationManagerTest is Test {
         assertEq(mm.getDepositCount(), 3);
         assertEq(fwb.balanceOf(address(mm)), 600 ether);
         vm.stopPrank();
-    } 
+    }
 
     function test_burn_fails_with_OwnableUnauthorizedAccount() public {
         TestToken _fwb;
