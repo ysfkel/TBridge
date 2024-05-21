@@ -83,7 +83,7 @@ contract MigrationDistributor {
 
         deposits[depositId] = Deposit({
            recipient: recipient, amount: amount,processed: false,
-           baseAmount:0
+           baseAmount:0 /* baseAmount will be updated when distribution is complete */
         });
         userDepositIds[recipient].push(depositId);
         emit RecordDeposit(depositId, recipient, amount);
