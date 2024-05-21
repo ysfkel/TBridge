@@ -1,19 +1,26 @@
-## Foundry
+# FWB Migration Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-Foundry consists of:
+![MIT license](https://img.shields.io/badge/license-MIT-blue)
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-## Documentation
+## Overview
 
-https://book.getfoundry.sh/
+lorem ipsum
 
-## Usage
+## Development
+
+### Installation
+
+You may have to install the following tools to use this repository:
+
+- [Foundry](https://github.com/foundry-rs/foundry) to compile and test contracts
+
+Install dependencies:
+
+```
+forge install
+```
 
 ### Build
 
