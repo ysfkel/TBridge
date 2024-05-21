@@ -1,9 +1,15 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
 import "./IFWBToken.sol";
 import "@openzeppelin/access/Ownable.sol";
 
+/**
+ * @title MigrationManager
+ * @notice This contract allows existing holders of $FWB on ETH mainnet
+ *  to exchange their mainnet $FWB efficiently in order to receive the 
+ * corresponding amount of Base $FWB owed. 
+ */
 contract MigrationManager is Ownable {
     error MigrationManager__ZeroAmount();
     error MigrationManager__ZeroAddressRecipient();

@@ -3,6 +3,11 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/**
+ * @title MigrationDistributor 
+ * @notice This  contract transfers Base mainnet $FWB tokens to mainnet $FWB holders who have locked 
+ * their tokens in the migration manager on ETH mainnet
+ */
 contract MigrationDistributor {
     error MigrationDistributor__OnlyOwner();
     error MigrationDistributor__DepositNotFound(uint256 depositId);
@@ -59,6 +64,13 @@ contract MigrationDistributor {
         conversionRate = _conversionRate;
     }
 
+    /**
+     * @notice Adds details of deposit which has been received at the migration manager on mainnet 
+     * @param depositId Id of the deposit 
+     * @param recipient Addrses which will receive the fwb token on base 
+     * @param amount which was deposited on the migration manager
+     * @dev The depositId is generated at the migration manager
+     */
     function recordDeposit(uint256 depositId, address recipient, uint256 amount)
         external
         onlyMigrationRecorder
@@ -74,6 +86,10 @@ contract MigrationDistributor {
         return depositId;
     }
 
+    /**
+     * @notice Processes the deposit by distributing FWB tokens to the receiving address
+     * @param depositId Id of the deposit  
+     */
     function distributeTokens(uint256 depositId) external onlyMigrationProcessor {
         Deposit memory deposit = deposits[depositId];
         if (deposit.recipient == address(0)) {
@@ -95,6 +111,10 @@ contract MigrationDistributor {
         emit DistributeTokens(depositId, deposit.recipient, baseAmount);
     }
 
+    /**
+     * @notice Fetches Deposit details
+     * @param depositId Id of the deposit  
+     */
     function getDeposit(uint256 depositId) external view returns (Deposit memory) {
         Deposit memory deposit = deposits[depositId];
         return deposit;
