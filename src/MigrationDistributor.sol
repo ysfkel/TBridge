@@ -29,6 +29,7 @@ contract MigrationDistributor {
     struct Deposit {
         address recipient;
         uint256 amount;
+        uint256 baseAmount;
         bool processed;
     }
 
@@ -80,7 +81,10 @@ contract MigrationDistributor {
             revert MigrationDistributor__DepositExists(depositId);
         }
 
-        deposits[depositId] = Deposit(recipient, amount, false);
+        deposits[depositId] = Deposit({
+           recipient: recipient, amount: amount,processed: false,
+           baseAmount:0
+        });
         userDepositIds[recipient].push(depositId);
         emit RecordDeposit(depositId, recipient, amount);
         return depositId;
@@ -107,6 +111,7 @@ contract MigrationDistributor {
         }
 
         deposits[depositId].processed = true;
+        deposits[depositId].baseAmount = baseAmount;
 
         emit DistributeTokens(depositId, deposit.recipient, baseAmount);
     }
