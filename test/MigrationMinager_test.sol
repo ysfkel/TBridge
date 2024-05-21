@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
 import {Ownable} from "@openzeppelin/access/Ownable.sol";
 import {Test, console} from "forge-std/Test.sol";
@@ -87,19 +87,7 @@ contract MigrationManagerTest is Test {
         assertEq(mm.getDepositCount(), 3);
         assertEq(fwb.balanceOf(address(mm)), 600 ether);
         vm.stopPrank();
-    }
-
-    // function testFuzz_test_deposit_succeeds(uint256 amount) public {
-    //     vm.startPrank(msg.sender);
-    //     TestToken _fwb = new TestToken();
-    //     _fwb.mint(msg.sender, amount);
-    //     MigrationManager _mm = new MigrationManager(address(_fwb));
-    //     _fwb.approve(address(_mm), amount);
-    //     _mm.deposit(amount);
-    //     assertEq(_mm.getDepositInfo(_mm.getDepositCount()).amount, amount);
-    //     assertEq(_fwb.balanceOf(address(_mm)), amount);
-    //     vm.stopPrank();
-    // }
+    } 
 
     function test_burn_fails_with_OwnableUnauthorizedAccount() public {
         TestToken _fwb;

@@ -3,6 +3,11 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/**
+ * @title MigrationDistributor 
+ * @notice This  contract transfers Base mainnet $FWB tokens to mainnet $FWB holders who have locked 
+ * their tokens in the migration manager on ETH mainnet
+ */
 contract MigrationDistributor {
     error MigrationDistributor__OnlyOwner();
     error MigrationDistributor__DepositNotFound(uint256 depositId);
@@ -15,7 +20,6 @@ contract MigrationDistributor {
     event RecordDeposit(uint256 depositId, address recipient, uint256 amount);
     event DistributeTokens(uint256 depositId, address recipient, uint256 amount);
 
-    uint256 _depositCount;
     IERC20 public baseToken;
     address public owner;
     address public migrationRecorder;
@@ -60,6 +64,13 @@ contract MigrationDistributor {
         conversionRate = _conversionRate;
     }
 
+    /**
+     * @notice Adds details of deposit which has been received at the migration manager on mainnet 
+     * @param depositId Id of the deposit 
+     * @param recipient Addrses which will receive the fwb token on base 
+     * @param amount which was deposited on the migration manager
+     * @dev The depositId is generated at the migration manager
+     */
     function recordDeposit(uint256 depositId, address recipient, uint256 amount)
         external
         onlyMigrationRecorder
@@ -69,13 +80,16 @@ contract MigrationDistributor {
             revert MigrationDistributor__DepositExists(depositId);
         }
 
-        uint256 baseAmount = amount * conversionRate;
-        deposits[depositId] = Deposit(recipient, baseAmount, false);
+        deposits[depositId] = Deposit(recipient, amount, false);
         userDepositIds[recipient].push(depositId);
-        emit RecordDeposit(depositId, recipient, baseAmount);
+        emit RecordDeposit(depositId, recipient, amount);
         return depositId;
     }
 
+    /**
+     * @notice Processes the deposit by distributing FWB tokens to the receiving address
+     * @param depositId Id of the deposit  
+     */
     function distributeTokens(uint256 depositId) external onlyMigrationProcessor {
         Deposit memory deposit = deposits[depositId];
         if (deposit.recipient == address(0)) {
@@ -83,18 +97,24 @@ contract MigrationDistributor {
         }
 
         if (deposit.processed) {
-            revert MigrationDistributor__DepositNotFound(depositId);
+            revert MigrationDistributor__TokensAlreadyDistributed(depositId);
         }
+        
+        uint256 baseAmount =  _getBaseAmount(deposit.amount);
 
-        if (baseToken.transfer(deposit.recipient, deposit.amount) == false) {
-            revert MigrationDistributor__TransferFailed(deposit.recipient, deposit.amount);
+        if (baseToken.transfer(deposit.recipient, baseAmount) == false) {
+            revert MigrationDistributor__TransferFailed(deposit.recipient, baseAmount);
         }
 
         deposits[depositId].processed = true;
 
-        emit DistributeTokens(depositId, deposit.recipient, deposit.amount);
+        emit DistributeTokens(depositId, deposit.recipient, baseAmount);
     }
 
+    /**
+     * @notice Fetches Deposit details
+     * @param depositId Id of the deposit  
+     */
     function getDeposit(uint256 depositId) external view returns (Deposit memory) {
         Deposit memory deposit = deposits[depositId];
         return deposit;
@@ -108,7 +128,11 @@ contract MigrationDistributor {
         migrationProcessor = newMigrationProcessor;
     }
 
-    function getDepositCount() public view returns (uint256) {
-        return _depositCount;
+    function getBaseAmount(uint256 amount) external view returns(uint256) {
+        return _getBaseAmount(amount);
+    }
+
+    function _getBaseAmount(uint256 amount) private view returns(uint256) {
+        return amount * conversionRate;
     }
 }
