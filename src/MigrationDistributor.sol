@@ -15,7 +15,6 @@ contract MigrationDistributor {
     event RecordDeposit(uint256 depositId, address recipient, uint256 amount);
     event DistributeTokens(uint256 depositId, address recipient, uint256 amount);
 
-    uint256 _depositCount;
     IERC20 public baseToken;
     address public owner;
     address public migrationRecorder;
@@ -69,10 +68,9 @@ contract MigrationDistributor {
             revert MigrationDistributor__DepositExists(depositId);
         }
 
-        uint256 baseAmount = amount * conversionRate;
-        deposits[depositId] = Deposit(recipient, baseAmount, false);
+        deposits[depositId] = Deposit(recipient, amount, false);
         userDepositIds[recipient].push(depositId);
-        emit RecordDeposit(depositId, recipient, baseAmount);
+        emit RecordDeposit(depositId, recipient, amount);
         return depositId;
     }
 
@@ -83,16 +81,18 @@ contract MigrationDistributor {
         }
 
         if (deposit.processed) {
-            revert MigrationDistributor__DepositNotFound(depositId);
+            revert MigrationDistributor__TokensAlreadyDistributed(depositId);
         }
+        
+        uint256 baseAmount =  _getBaseAmount(deposit.amount);
 
-        if (baseToken.transfer(deposit.recipient, deposit.amount) == false) {
-            revert MigrationDistributor__TransferFailed(deposit.recipient, deposit.amount);
+        if (baseToken.transfer(deposit.recipient, baseAmount) == false) {
+            revert MigrationDistributor__TransferFailed(deposit.recipient, baseAmount);
         }
 
         deposits[depositId].processed = true;
 
-        emit DistributeTokens(depositId, deposit.recipient, deposit.amount);
+        emit DistributeTokens(depositId, deposit.recipient, baseAmount);
     }
 
     function getDeposit(uint256 depositId) external view returns (Deposit memory) {
@@ -108,7 +108,11 @@ contract MigrationDistributor {
         migrationProcessor = newMigrationProcessor;
     }
 
-    function getDepositCount() public view returns (uint256) {
-        return _depositCount;
+    function getBaseAmount(uint256 amount) external view returns(uint256) {
+        return _getBaseAmount(amount);
+    }
+
+    function _getBaseAmount(uint256 amount) private view returns(uint256) {
+        return amount * conversionRate;
     }
 }
