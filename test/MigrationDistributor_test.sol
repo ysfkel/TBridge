@@ -50,6 +50,7 @@ contract MigrationDistributorTest is Test {
         md.recordDeposit(1, USER1, amount);
         MigrationDistributor.Deposit memory deposit = md.getDeposit(1);
         assertEq(deposit.amount, amount);
+        assertEq(deposit.baseAmount, 0);
         vm.stopPrank();
     }
 
@@ -93,7 +94,8 @@ contract MigrationDistributorTest is Test {
         assertEq(md.getDeposit(depositId).processed, false);
         md.distributeTokens(depositId);
         assertEq(md.getDeposit(depositId).processed, true);
-        assertEq(fwb.balanceOf(USER3), amount * conversionRate);
+        assertEq(md.getDeposit(depositId).baseAmount, amount * conversionRate);
+        assertEq(fwb.balanceOf(USER3), amount * conversionRate); 
         vm.stopPrank();
     }
 }
