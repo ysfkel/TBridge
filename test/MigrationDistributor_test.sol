@@ -14,7 +14,7 @@ contract MigrationDistributorTest is Test {
     MigrationDistributor md;
     TestToken fwb;
     address USER1 = makeAddr("USER1");
-    address USER2 = makeAddr("USER2"); 
+    address USER2 = makeAddr("USER2");
     address USER3 = makeAddr("USER3");
     address migrationRecorder = makeAddr("migrationRecorder");
     address migrationProcessor = makeAddr("migrationProcessor");
@@ -64,7 +64,9 @@ contract MigrationDistributorTest is Test {
     function test_distributeTokens_reverts_with_MigrationDistributor__DepositNotFound() public {
         vm.startPrank(migrationProcessor);
         uint256 depositId = 2;
-        vm.expectRevert(abi.encodeWithSelector(MigrationDistributor.MigrationDistributor__DepositNotFound.selector, depositId));
+        vm.expectRevert(
+            abi.encodeWithSelector(MigrationDistributor.MigrationDistributor__DepositNotFound.selector, depositId)
+        );
         md.distributeTokens(depositId);
         vm.stopPrank();
     }
@@ -77,7 +79,11 @@ contract MigrationDistributorTest is Test {
 
         vm.startPrank(migrationProcessor);
         md.distributeTokens(depositId);
-        vm.expectRevert(abi.encodeWithSelector(MigrationDistributor.MigrationDistributor__TokensAlreadyDistributed.selector, depositId));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                MigrationDistributor.MigrationDistributor__TokensAlreadyDistributed.selector, depositId
+            )
+        );
         md.distributeTokens(depositId);
         vm.stopPrank();
     }
@@ -95,7 +101,7 @@ contract MigrationDistributorTest is Test {
         md.distributeTokens(depositId);
         assertEq(md.getDeposit(depositId).processed, true);
         assertEq(md.getDeposit(depositId).baseAmount, amount * conversionRate);
-        assertEq(fwb.balanceOf(USER3), amount * conversionRate); 
+        assertEq(fwb.balanceOf(USER3), amount * conversionRate);
         vm.stopPrank();
     }
 }
