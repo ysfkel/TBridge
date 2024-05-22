@@ -10,7 +10,7 @@ The $FWB migration is distinct from a standard token bridging process in three w
 2. Once $FWB is deposited to the Migration Manager contract on ETH mainnet, they cannot be withdrawn.
 3. The owner of the Migration Manager contract can burn $FWB tokens that are locked in the contract.
 
-These contracts are intended to be used with on an off-chain process to complete the transfer of Base $FWB whenever a user deposits mainnet $FWB to the Migration Manager contract. The Migration Distributor contract defines the two roles the off-chain process will implement.
+These contracts are intended to be used with an off-chain process to complete the transfer of Base $FWB whenever a user deposits mainnet $FWB to the Migration Manager contract. The Migration Distributor contract defines the two roles the off-chain process will implement.
 
 1. The Migration Recorder: The address responsible for writing deposit information to the Migration Distributor contract on Base.
 2. The Migration Processor: The address responsible for transferring FWB tokens on Base for each recorded deposit, and then marking those deposits as processed.
