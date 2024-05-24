@@ -7,8 +7,8 @@ import "@openzeppelin/access/Ownable.sol";
 /**
  * @title MigrationManager
  * @notice This contract allows existing holders of $FWB on ETH mainnet
- *  to exchange their mainnet $FWB efficiently in order to receive the 
- * corresponding amount of Base $FWB owed. 
+ *  to exchange their mainnet $FWB efficiently in order to receive the
+ * corresponding amount of Base $FWB owed.
  */
 contract MigrationManager is Ownable {
     error MigrationManager__ZeroAmount();
@@ -16,7 +16,7 @@ contract MigrationManager is Ownable {
     error MigrationManager__ZeroAddressFwbToken();
     error MigrationManager__TransferFailed(address depositor, uint256 amount);
 
-    event Deposit(address indexed account, address indexed recipient, uint256 amount);
+    event Deposit(uint256 indexed depositId, address indexed account, address indexed recipient, uint256 amount);
     event Burn(address account, uint256 amount);
 
     struct DepositInfo {
@@ -44,7 +44,7 @@ contract MigrationManager is Ownable {
      * @param amount The amount of tokens to deposit.
      */
     function deposit(uint256 amount) external {
-        _deposit(msg.sender, amount, msg.sender);
+        _deposit(amount, msg.sender);
     }
 
     /**
@@ -56,7 +56,7 @@ contract MigrationManager is Ownable {
         if (recipient == address(0)) {
             revert MigrationManager__ZeroAddressRecipient();
         }
-        _deposit(msg.sender, amount, recipient);
+        _deposit(amount, recipient);
     }
 
     /**
@@ -85,21 +85,22 @@ contract MigrationManager is Ownable {
         return _depositCount;
     }
 
-    function _deposit(address from, uint256 amount, address recipient) private {
+    function _deposit(uint256 amount, address recipient) private {
         if (amount == 0) {
             revert MigrationManager__ZeroAmount();
         }
 
         uint256 depositId = _getNextDepositId();
 
-        deposits[depositId] = DepositInfo({depositId: depositId, depositor: from, recipient: recipient, amount: amount});
+        deposits[depositId] =
+            DepositInfo({depositId: depositId, depositor: msg.sender, recipient: recipient, amount: amount});
 
         depositIds[msg.sender].push(depositId);
 
         if (fwbToken.transferFrom(msg.sender, address(this), amount) == false) {
             revert MigrationManager__TransferFailed(msg.sender, amount);
         }
-        emit Deposit(from, recipient, amount);
+        emit Deposit(depositId, msg.sender, recipient, amount);
     }
 
     function _getNextDepositId() private returns (uint256) {
