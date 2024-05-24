@@ -2,26 +2,28 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/token/ERC20/IERC20.sol";
-
+import "@openzeppelin/access/Ownable.sol";
 /**
  * @title MigrationDistributor
  * @notice This contract facilitates the transfer of Base $FWB tokens to users who have locked
  * their tokens in the Migration Manager contract on ETH mainnet
  */
-contract MigrationDistributor {
-    error MigrationDistributor__OnlyOwner();
+contract MigrationDistributor is Ownable {
+    error MigrationDistributor__ZeroAddress_BaseToken();
+    error MigrationDistributor__ZeroAddress_MigrationRecorder();
+    error MigrationDistributor__ZeroAddress_MigrationProcessor();
     error MigrationDistributor__DepositNotFound(uint256 depositId);
     error MigrationDistributor__TokensAlreadyDistributed(uint256 depositId);
     error MigrationDistributor__TransferFailed(address account, uint256 amount);
     error MigrationDistributor__DepositExists(uint256 depositId);
     error MigrationDistributor__OnlyMigrationRecorder();
     error MigrationDistributor__OnlyMigrationProcessor();
+    error MigrationDistributor__ZeroConversionRate();
 
     event RecordDeposit(uint256 depositId, address recipient, uint256 amount);
     event DistributeTokens(uint256 depositId, address recipient, uint256 amount);
 
     IERC20 public baseToken;
-    address public owner;
     address public migrationRecorder;
     address public migrationProcessor;
     uint256 public conversionRate;
@@ -30,18 +32,10 @@ contract MigrationDistributor {
         address recipient;
         uint256 amount;
         uint256 baseAmount;
-        bool processed;
     }
 
     mapping(uint256 => Deposit) public deposits;
     mapping(address => uint256[]) public userDepositIds;
-
-    modifier onlyOwner() {
-        if (msg.sender != owner) {
-            revert MigrationDistributor__OnlyOwner();
-        }
-        _;
-    }
 
     modifier onlyMigrationRecorder() {
         if (msg.sender != migrationRecorder) {
@@ -57,9 +51,15 @@ contract MigrationDistributor {
         _;
     }
 
-    constructor(uint256 _conversionRate, address _baseToken, address _migrationRecorder, address _migrationProcessor) {
+    constructor(uint256 _conversionRate, address _baseToken, address _migrationRecorder, address _migrationProcessor)
+        Ownable(msg.sender)
+    {
+        if (_conversionRate == 0) revert MigrationDistributor__ZeroConversionRate();
+        if (_baseToken == address(0)) revert MigrationDistributor__ZeroAddress_BaseToken();
+        if (_migrationRecorder == address(0)) revert MigrationDistributor__ZeroAddress_MigrationRecorder();
+        if (_migrationProcessor == address(0)) revert MigrationDistributor__ZeroAddress_MigrationProcessor();
+
         baseToken = IERC20(_baseToken);
-        owner = msg.sender;
         migrationRecorder = _migrationRecorder;
         migrationProcessor = _migrationProcessor;
         conversionRate = _conversionRate;
@@ -84,7 +84,6 @@ contract MigrationDistributor {
         deposits[depositId] = Deposit({
             recipient: recipient,
             amount: amount,
-            processed: false,
             baseAmount: 0 /* baseAmount will be updated when distribution is complete */
         });
         userDepositIds[recipient].push(depositId);
@@ -102,18 +101,17 @@ contract MigrationDistributor {
             revert MigrationDistributor__DepositNotFound(depositId);
         }
 
-        if (deposit.processed) {
+        if (deposit.baseAmount > 0) {
             revert MigrationDistributor__TokensAlreadyDistributed(depositId);
         }
 
         uint256 baseAmount = _getBaseAmount(deposit.amount);
 
+        deposits[depositId].baseAmount = baseAmount;
+
         if (baseToken.transfer(deposit.recipient, baseAmount) == false) {
             revert MigrationDistributor__TransferFailed(deposit.recipient, baseAmount);
         }
-
-        deposits[depositId].processed = true;
-        deposits[depositId].baseAmount = baseAmount;
 
         emit DistributeTokens(depositId, deposit.recipient, baseAmount);
     }
@@ -141,5 +139,9 @@ contract MigrationDistributor {
 
     function _getBaseAmount(uint256 amount) private view returns (uint256) {
         return amount * conversionRate;
+    }
+
+    function isProcessed(uint256 depositId) external view returns (bool) {
+        return deposits[depositId].baseAmount > 0;
     }
 }

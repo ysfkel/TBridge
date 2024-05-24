@@ -28,7 +28,27 @@ contract MigrationDistributorTest is Test {
         fwb.mint(address(md), 1000000 ether);
     }
 
-    function test_constructor() public view {
+    function test_constructor_reverts_with_MigrationDistributor__ZeroConversionRate() public {
+        vm.expectRevert(MigrationDistributor.MigrationDistributor__ZeroConversionRate.selector);
+        new MigrationDistributor(0, address(fwb), migrationRecorder, migrationProcessor);
+    }
+
+    function test_constructor_reverts_with_MigrationDistributor__ZeroAddress_BaseToken() public {
+        vm.expectRevert(MigrationDistributor.MigrationDistributor__ZeroAddress_BaseToken.selector);
+        new MigrationDistributor(conversionRate, address(0), migrationRecorder, migrationProcessor);
+    }
+
+    function test_constructor_reverts_with_MigrationDistributor__ZeroAddress_MigrationRecorder() public {
+        vm.expectRevert(MigrationDistributor.MigrationDistributor__ZeroAddress_MigrationRecorder.selector);
+        new MigrationDistributor(conversionRate, address(fwb), address(0), migrationProcessor);
+    }
+
+    function test_constructor_reverts_with_MigrationDistributor__ZeroAddress_MigrationProcessor() public {
+        vm.expectRevert(MigrationDistributor.MigrationDistributor__ZeroAddress_MigrationProcessor.selector);
+        new MigrationDistributor(conversionRate, address(fwb), migrationRecorder, address(0));
+    }
+
+    function test_constructor_succeeds() public view {
         assertEq(address(md.baseToken()), address(fwb));
         assertEq(address(md.migrationRecorder()), migrationRecorder);
         assertEq(address(md.migrationProcessor()), migrationProcessor);
@@ -97,9 +117,9 @@ contract MigrationDistributorTest is Test {
         vm.startPrank(migrationProcessor);
         vm.expectEmit(true, true, true, true);
         emit DistributeTokens(depositId, USER3, amount * conversionRate);
-        assertEq(md.getDeposit(depositId).processed, false);
+        assertEq(md.isProcessed(depositId), false);
         md.distributeTokens(depositId);
-        assertEq(md.getDeposit(depositId).processed, true);
+        assertEq(md.isProcessed(depositId), true);
         assertEq(md.getDeposit(depositId).baseAmount, amount * conversionRate);
         assertEq(fwb.balanceOf(USER3), amount * conversionRate);
         vm.stopPrank();
