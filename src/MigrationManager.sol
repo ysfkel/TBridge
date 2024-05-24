@@ -6,9 +6,14 @@ import "@openzeppelin/access/Ownable.sol";
 
 /**
  * @title MigrationManager
+<<<<<<< HEAD
  * @notice This contract allows existing holders of $FWB on ETH mainnet
  *  to exchange their mainnet $FWB efficiently in order to receive the
  * corresponding amount of Base $FWB owed.
+=======
+ * @notice This contract facilitates the exchange of $FWB on ETH mainnet
+ *  for a corresponding amount of Base $FWB.
+>>>>>>> master
  */
 contract MigrationManager is Ownable {
     error MigrationManager__ZeroAmount();
@@ -40,7 +45,7 @@ contract MigrationManager is Ownable {
     }
 
     /**
-     * @notice Deposits tokens to the sender's own account.
+     * @notice Deposits tokens with the sender's address specified as the Base recipient.
      * @param amount The amount of tokens to deposit.
      */
     function deposit(uint256 amount) external {
@@ -48,7 +53,7 @@ contract MigrationManager is Ownable {
     }
 
     /**
-     * @notice Deposits tokens to another specified account.
+     * @notice Deposits tokens with another address specified as the Base recipient.
      * @param amount The amount of tokens to deposit.
      * @param recipient The address of the recipient.
      */
@@ -71,7 +76,7 @@ contract MigrationManager is Ownable {
     /**
      * @notice Retrieves the details of a specific deposit by ID.
      * @param depositId The ID of the deposit.
-     * @return depositInfo The address of the depositor.
+     * @return depositInfo The details of the deposit.
      */
     function getDepositInfo(uint256 depositId) external view returns (DepositInfo memory) {
         return deposits[depositId];
