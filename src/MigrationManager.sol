@@ -6,14 +6,8 @@ import "@openzeppelin/access/Ownable.sol";
 
 /**
  * @title MigrationManager
-<<<<<<< HEAD
- * @notice This contract allows existing holders of $FWB on ETH mainnet
- *  to exchange their mainnet $FWB efficiently in order to receive the
- * corresponding amount of Base $FWB owed.
-=======
  * @notice This contract facilitates the exchange of $FWB on ETH mainnet
  *  for a corresponding amount of Base $FWB.
->>>>>>> master
  */
 contract MigrationManager is Ownable {
     error MigrationManager__ZeroAmount();
