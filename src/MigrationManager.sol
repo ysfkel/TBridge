@@ -23,6 +23,7 @@ contract MigrationManager is Ownable {
         address depositor;
         address recipient;
         uint256 amount;
+        uint256 timestamp;
     }
 
     uint64 private _depositCount;
@@ -92,7 +93,9 @@ contract MigrationManager is Ownable {
         uint64 depositId = _getNextDepositId();
 
         deposits[depositId] =
-            DepositInfo({depositId: depositId, depositor: msg.sender, recipient: recipient, amount: amount});
+            DepositInfo({depositId: depositId, depositor: msg.sender, recipient: recipient, amount: amount,
+            timestamp: block.timestamp
+            });
 
         depositIds[msg.sender].push(depositId);
 
