@@ -90,7 +90,7 @@ contract MigrationManagerTest is Test {
         vm.stopPrank();
     }
 
-    function test_burn_fails_with_OwnableUnauthorizedAccount() public {
+    function test_burn_reverts_with_OwnableUnauthorizedAccount() public {
         TestToken _fwb;
         MigrationManager _mm;
         // Initializations

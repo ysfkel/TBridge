@@ -12,26 +12,30 @@ contract MigrationDistributor is Ownable {
     error MigrationDistributor__ZeroAddress_BaseToken();
     error MigrationDistributor__ZeroAddress_MigrationRecorder();
     error MigrationDistributor__ZeroAddress_MigrationProcessor();
-    error MigrationDistributor__DepositNotFound(uint256 depositId);
+    error MigrationDistributor__DepositNotFound(uint64 depositId);
     error MigrationDistributor__TokensAlreadyDistributed(uint64 depositId);
     error MigrationDistributor__TransferFailed(address account, uint256 amount);
     error MigrationDistributor__DepositExists(uint64 depositId);
     error MigrationDistributor__OnlyMigrationRecorder();
     error MigrationDistributor__OnlyMigrationProcessor();
     error MigrationDistributor__ZeroConversionRate();
+    error MigrationDistributor__TransferDelayNotElapsed(uint64 depositId);
 
     event RecordDeposit(uint64 depositId, address recipient, uint256 amount);
     event DistributeTokens(uint64 depositId, address recipient, uint256 amount);
+    event SetTransferDelay(uint256 transferDelay);
 
     IERC20 public baseToken;
     address public migrationRecorder;
     address public migrationProcessor;
     uint256 public conversionRate;
+    uint256 public transferDelay;
 
     struct Deposit {
         address recipient;
         uint256 amount;
         uint256 baseAmount;
+        uint256 timestamp;
     }
 
     mapping(uint64 => Deposit) public deposits;
@@ -51,7 +55,7 @@ contract MigrationDistributor is Ownable {
         _;
     }
 
-    constructor(uint256 _conversionRate, address _baseToken, address _migrationRecorder, address _migrationProcessor)
+    constructor(uint256 _conversionRate, uint256 _transferDelay, address _baseToken, address _migrationRecorder, address _migrationProcessor)
         Ownable(msg.sender)
     {
         if (_conversionRate == 0) revert MigrationDistributor__ZeroConversionRate();
@@ -63,6 +67,7 @@ contract MigrationDistributor is Ownable {
         migrationRecorder = _migrationRecorder;
         migrationProcessor = _migrationProcessor;
         conversionRate = _conversionRate;
+        transferDelay = _transferDelay;
     }
 
     /**
@@ -84,7 +89,8 @@ contract MigrationDistributor is Ownable {
         deposits[depositId] = Deposit({
             recipient: recipient,
             amount: amount,
-            baseAmount: 0 /* baseAmount will be updated when distribution is complete */
+            baseAmount: 0, /* baseAmount will be updated when distribution is complete */
+            timestamp: block.timestamp
         });
         userDepositIds[recipient].push(depositId);
         emit RecordDeposit(depositId, recipient, amount);
@@ -97,6 +103,11 @@ contract MigrationDistributor is Ownable {
      */
     function distributeTokens(uint64 depositId) external onlyMigrationProcessor {
         Deposit memory deposit = deposits[depositId];
+
+        if(block.timestamp < deposit.timestamp + transferDelay) {
+           revert MigrationDistributor__TransferDelayNotElapsed(depositId);
+       }
+
         if (deposit.recipient == address(0)) {
             revert MigrationDistributor__DepositNotFound(depositId);
         }
@@ -114,6 +125,11 @@ contract MigrationDistributor is Ownable {
         }
 
         emit DistributeTokens(depositId, deposit.recipient, baseAmount);
+    }
+
+    function setTransferDelay(uint256 _transferDelay) external onlyOwner() {
+        transferDelay = _transferDelay;
+        emit SetTransferDelay(_transferDelay);
     }
 
     /**

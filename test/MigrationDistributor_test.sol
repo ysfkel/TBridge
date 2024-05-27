@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-
+import {Ownable} from "@openzeppelin/access/Ownable.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {MigrationDistributor} from "../src/MigrationDistributor.sol";
 import {MigrationManager} from "../src/MigrationManager.sol";
@@ -9,7 +9,9 @@ import {TestToken} from "./TestToken.sol";
 contract MigrationDistributorTest is Test {
     event RecordDeposit(uint64 depositId, address recipient, uint256 amount);
     event DistributeTokens(uint64 depositId, address recipient, uint256 amount);
+    event SetTransferDelay(uint256 transferDelay);
 
+    uint256 transferDelay = 0; 
     uint256 conversionRate = 10;
     MigrationDistributor md;
     TestToken fwb;
@@ -24,28 +26,28 @@ contract MigrationDistributorTest is Test {
         fwb.mint(msg.sender, 5000000 ether);
         fwb.mint(USER1, 1000 ether);
         fwb.mint(USER2, 1000 ether);
-        md = new MigrationDistributor(conversionRate, address(fwb), migrationRecorder, migrationProcessor);
+        md = new MigrationDistributor(conversionRate,transferDelay,  address(fwb), migrationRecorder, migrationProcessor);
         fwb.mint(address(md), 1000000 ether);
     }
 
     function test_constructor_reverts_with_MigrationDistributor__ZeroConversionRate() public {
         vm.expectRevert(MigrationDistributor.MigrationDistributor__ZeroConversionRate.selector);
-        new MigrationDistributor(0, address(fwb), migrationRecorder, migrationProcessor);
+        new MigrationDistributor(0, transferDelay, address(fwb), migrationRecorder, migrationProcessor);
     }
 
     function test_constructor_reverts_with_MigrationDistributor__ZeroAddress_BaseToken() public {
         vm.expectRevert(MigrationDistributor.MigrationDistributor__ZeroAddress_BaseToken.selector);
-        new MigrationDistributor(conversionRate, address(0), migrationRecorder, migrationProcessor);
+        new MigrationDistributor(conversionRate,transferDelay, address(0), migrationRecorder, migrationProcessor);
     }
 
     function test_constructor_reverts_with_MigrationDistributor__ZeroAddress_MigrationRecorder() public {
         vm.expectRevert(MigrationDistributor.MigrationDistributor__ZeroAddress_MigrationRecorder.selector);
-        new MigrationDistributor(conversionRate, address(fwb), address(0), migrationProcessor);
+        new MigrationDistributor(conversionRate,transferDelay, address(fwb), address(0), migrationProcessor);
     }
 
     function test_constructor_reverts_with_MigrationDistributor__ZeroAddress_MigrationProcessor() public {
         vm.expectRevert(MigrationDistributor.MigrationDistributor__ZeroAddress_MigrationProcessor.selector);
-        new MigrationDistributor(conversionRate, address(fwb), migrationRecorder, address(0));
+        new MigrationDistributor(conversionRate,transferDelay, address(fwb), migrationRecorder, address(0));
     }
 
     function test_constructor_succeeds() public view {
@@ -53,6 +55,7 @@ contract MigrationDistributorTest is Test {
         assertEq(address(md.migrationRecorder()), migrationRecorder);
         assertEq(address(md.migrationProcessor()), migrationProcessor);
         assertEq(md.conversionRate(), conversionRate);
+        assertEq(md.transferDelay(), transferDelay);
     }
 
     function test_recordDeposit_reverts_with_MigrationDistributor__OnlyMigrationRecorder() public {
@@ -71,6 +74,20 @@ contract MigrationDistributorTest is Test {
         MigrationDistributor.Deposit memory deposit = md.getDeposit(1);
         assertEq(deposit.amount, amount);
         assertEq(deposit.baseAmount, 0);
+        vm.stopPrank();
+    }
+
+    function test_distributeTokens_reverts_with_MigrationDistributor__TransferDelayNotElapsed() public {
+        
+        vm.startPrank(msg.sender); 
+        uint256 _transferDelay = 3*3600; 
+        MigrationDistributor _md = new MigrationDistributor(conversionRate,_transferDelay,  address(new TestToken()), migrationRecorder, migrationProcessor);
+        vm.stopPrank();
+
+        vm.startPrank(migrationProcessor);
+        uint64 depositId = 1;
+        vm.expectRevert(abi.encodeWithSelector(MigrationDistributor.MigrationDistributor__TransferDelayNotElapsed.selector, depositId));
+        _md.distributeTokens(depositId);
         vm.stopPrank();
     }
 
@@ -122,6 +139,28 @@ contract MigrationDistributorTest is Test {
         assertEq(md.isProcessed(depositId), true);
         assertEq(md.getDeposit(depositId).baseAmount, amount * conversionRate);
         assertEq(fwb.balanceOf(USER3), amount * conversionRate);
+        vm.stopPrank();
+    }
+
+    function test_setTransferDelay_reverts_with_OwnableUnauthorizedAccount() public {
+
+        vm.startPrank(msg.sender); 
+        MigrationDistributor _md = new MigrationDistributor(conversionRate, 0,  address(new TestToken()), migrationRecorder, migrationProcessor);
+        vm.stopPrank();
+
+        vm.startPrank(USER1); 
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, USER1));
+        _md.setTransferDelay(3 * 3600);
+        vm.stopPrank();
+    }
+
+    function test_setTransferDelay_succeeds() public {
+        vm.startPrank(msg.sender); 
+        MigrationDistributor _md = new MigrationDistributor(conversionRate, 0,  address(new TestToken()), migrationRecorder, migrationProcessor);
+        uint256 _transferDelay = 3 * 3600;
+        vm.expectEmit(true, true, true, true);
+        emit SetTransferDelay( _transferDelay);
+        _md.setTransferDelay(3 * 3600);
         vm.stopPrank();
     }
 }
