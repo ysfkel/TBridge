@@ -7,8 +7,8 @@ import {MigrationManager} from "../src/MigrationManager.sol";
 import {TestToken} from "./TestToken.sol";
 
 contract MigrationDistributorTest is Test {
-    event RecordDeposit(uint256 depositId, address recipient, uint256 amount);
-    event DistributeTokens(uint256 depositId, address recipient, uint256 amount);
+    event RecordDeposit(uint64 depositId, address recipient, uint256 amount);
+    event DistributeTokens(uint64 depositId, address recipient, uint256 amount);
 
     uint256 conversionRate = 10;
     MigrationDistributor md;
@@ -83,7 +83,7 @@ contract MigrationDistributorTest is Test {
 
     function test_distributeTokens_reverts_with_MigrationDistributor__DepositNotFound() public {
         vm.startPrank(migrationProcessor);
-        uint256 depositId = 2;
+        uint64 depositId = 2;
         vm.expectRevert(
             abi.encodeWithSelector(MigrationDistributor.MigrationDistributor__DepositNotFound.selector, depositId)
         );
@@ -92,7 +92,7 @@ contract MigrationDistributorTest is Test {
     }
 
     function test_distributeTokens_reverts_with_MigrationDistributor__TokensAlreadyDistributed() public {
-        uint256 depositId = 2;
+        uint64 depositId = 2;
         vm.startPrank(migrationRecorder);
         md.recordDeposit(depositId, USER1, 100 ether);
         vm.stopPrank();
@@ -109,7 +109,7 @@ contract MigrationDistributorTest is Test {
     }
 
     function test_distributeTokens_succeeds() public {
-        uint256 depositId = 2;
+        uint64 depositId = 2;
         uint256 amount = 7900 ether;
         vm.startPrank(migrationRecorder);
         md.recordDeposit(depositId, USER3, amount);

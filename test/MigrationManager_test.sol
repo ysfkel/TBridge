@@ -8,7 +8,7 @@ import {IFWBToken} from "../src/IFWBToken.sol";
 import {TestToken} from "./TestToken.sol";
 
 contract MigrationManagerTest is Test {
-    event Deposit(uint256 indexed depositId, address indexed account, address indexed recipient, uint256 amount);
+    event Deposit(uint64 indexed depositId, address indexed account, address indexed recipient, uint256 amount);
 
     MigrationManager mm;
     TestToken fwb;
@@ -39,6 +39,7 @@ contract MigrationManagerTest is Test {
         vm.startPrank(msg.sender);
         fwb.approve(address(mm), 100 ether);
         vm.expectEmit(true, true, true, true);
+
         emit Deposit(1, msg.sender, msg.sender, 100 ether);
         mm.deposit(100 ether);
         MigrationManager.DepositInfo memory depositInfo = mm.getDepositInfo(1);
