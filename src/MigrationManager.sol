@@ -15,18 +15,19 @@ contract MigrationManager is Ownable {
     error MigrationManager__ZeroAddressFwbToken();
     error MigrationManager__TransferFailed(address depositor, uint256 amount);
 
-    event Deposit(uint256 indexed depositId, address indexed account, address indexed recipient, uint256 amount);
+    event Deposit(uint64 indexed depositId, address indexed account, address indexed recipient, uint256 amount);
     event Burn(address account, uint256 amount);
 
     struct DepositInfo {
-        uint256 depositId;
+        uint64 depositId;
         address depositor;
         address recipient;
         uint256 amount;
+        uint256 timestamp;
     }
 
-    uint256 private _depositCount;
-    mapping(address => uint256[]) public depositIds;
+    uint64 private _depositCount;
+    mapping(address => uint64[]) public depositIds;
     mapping(uint256 => DepositInfo) public deposits;
     IFWBToken public fwbToken;
 
@@ -72,7 +73,7 @@ contract MigrationManager is Ownable {
      * @param depositId The ID of the deposit.
      * @return depositInfo The details of the deposit.
      */
-    function getDepositInfo(uint256 depositId) external view returns (DepositInfo memory) {
+    function getDepositInfo(uint64 depositId) external view returns (DepositInfo memory) {
         return deposits[depositId];
     }
 
@@ -89,10 +90,12 @@ contract MigrationManager is Ownable {
             revert MigrationManager__ZeroAmount();
         }
 
-        uint256 depositId = _getNextDepositId();
+        uint64 depositId = _getNextDepositId();
 
         deposits[depositId] =
-            DepositInfo({depositId: depositId, depositor: msg.sender, recipient: recipient, amount: amount});
+            DepositInfo({depositId: depositId, depositor: msg.sender, recipient: recipient, amount: amount,
+            timestamp: block.timestamp
+            });
 
         depositIds[msg.sender].push(depositId);
 
@@ -102,7 +105,7 @@ contract MigrationManager is Ownable {
         emit Deposit(depositId, msg.sender, recipient, amount);
     }
 
-    function _getNextDepositId() private returns (uint256) {
+    function _getNextDepositId() private returns (uint64) {
         return ++_depositCount;
     }
 }
