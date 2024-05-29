@@ -106,7 +106,7 @@ contract MigrationDistributor is Ownable {
 
         if(block.timestamp < deposit.timestamp + transferDelay) {
            revert MigrationDistributor__TransferDelayNotElapsed(depositId);
-       }
+        }
 
         if (deposit.recipient == address(0)) {
             revert MigrationDistributor__DepositNotFound(depositId);

@@ -15,7 +15,7 @@ contract MigrationManager is Ownable {
     error MigrationManager__ZeroAddressFwbToken();
     error MigrationManager__TransferFailed(address depositor, uint256 amount);
 
-    event Deposit(uint64 indexed depositId, address indexed account, address indexed recipient, uint256 amount);
+    event Deposit(uint64 indexed depositId, address indexed account, address indexed recipient, uint256 amount, uint256 timestamp);
     event Burn(address account, uint256 amount);
 
     struct DepositInfo {
@@ -92,9 +92,11 @@ contract MigrationManager is Ownable {
 
         uint64 depositId = _getNextDepositId();
 
+        uint256 timestamp = block.timestamp;
+
         deposits[depositId] =
             DepositInfo({depositId: depositId, depositor: msg.sender, recipient: recipient, amount: amount,
-            timestamp: block.timestamp
+            timestamp: timestamp
             });
 
         depositIds[msg.sender].push(depositId);
@@ -102,7 +104,7 @@ contract MigrationManager is Ownable {
         if (fwbToken.transferFrom(msg.sender, address(this), amount) == false) {
             revert MigrationManager__TransferFailed(msg.sender, amount);
         }
-        emit Deposit(depositId, msg.sender, recipient, amount);
+        emit Deposit(depositId, msg.sender, recipient, amount, timestamp);
     }
 
     function _getNextDepositId() private returns (uint64) {
