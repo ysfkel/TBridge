@@ -72,8 +72,35 @@ contract MigrationDistributorTest is Test {
         emit RecordDeposit(1, USER1, amount);
         md.recordDeposit(1, USER1, amount);
         MigrationDistributor.Deposit memory deposit = md.getDeposit(1);
+
         assertEq(deposit.amount, amount);
         assertEq(deposit.baseAmount, 0);
+        uint256 index = md.getDepositStatusIndex(1);
+        assertEq(md.getDepositStatuses()[index].isProcessed, false);
+        vm.stopPrank();
+    }
+
+    function test_recordDeposit_succeeds_should_add_depositStatuses() public {
+        vm.startPrank(migrationRecorder);
+        uint256 amount = 100 ether; 
+        md.recordDeposit(1, USER1, amount); 
+        md.recordDeposit(2, USER1, amount); 
+        md.recordDeposit(3, USER1, amount);  
+        assertEq(md.getDepositStatuses()[md.getDepositStatusIndex(1)].depositId, 1);
+        assertEq(md.getDepositStatuses()[md.getDepositStatusIndex(2)].depositId, 2);
+        assertEq(md.getDepositStatuses()[md.getDepositStatusIndex(3)].depositId, 3);
+        vm.stopPrank();
+    }
+
+    function test_recordDeposit_succeeds_should_increment_depositStatusIndexes() public {
+        vm.startPrank(migrationRecorder);
+        uint256 amount = 100 ether; 
+        md.recordDeposit(1, USER1, amount); 
+        md.recordDeposit(2, USER1, amount); 
+        md.recordDeposit(3, USER1, amount);  
+        assertEq(md.getDepositStatusIndex(1), 0);
+        assertEq(md.getDepositStatusIndex(2), 1);
+        assertEq(md.getDepositStatusIndex(3), 2);
         vm.stopPrank();
     }
 
@@ -139,6 +166,19 @@ contract MigrationDistributorTest is Test {
         assertEq(md.isProcessed(depositId), true);
         assertEq(md.getDeposit(depositId).baseAmount, amount * conversionRate);
         assertEq(fwb.balanceOf(USER3), amount * conversionRate);
+        vm.stopPrank();
+    }
+
+    function test_distributeTokens_succeeds_should_update_depositStatus_isProcessed_true() public {
+        uint64 depositId = 2;
+        uint256 amount = 7900 ether;
+        vm.startPrank(migrationRecorder);
+        md.recordDeposit(depositId, USER3, amount);
+        vm.stopPrank();
+        vm.startPrank(migrationProcessor);
+ 
+        md.distributeTokens(depositId); 
+        assertEq(md.getDepositStatuses()[md.getDepositStatusIndex(depositId)].isProcessed, true);
         vm.stopPrank();
     }
 

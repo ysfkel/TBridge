@@ -9,6 +9,19 @@ import "@openzeppelin/access/Ownable.sol";
  * their tokens in the Migration Manager contract on ETH mainnet
  */
 contract MigrationDistributor is Ownable {
+    
+    struct Deposit {
+        address recipient;
+        uint256 amount;
+        uint256 baseAmount;
+        uint256 timestamp;
+    }
+
+    struct DepositStatus { 
+       uint64 depositId;
+       bool isProcessed;
+    }
+
     error MigrationDistributor__ZeroAddress_BaseToken();
     error MigrationDistributor__ZeroAddress_MigrationRecorder();
     error MigrationDistributor__ZeroAddress_MigrationProcessor();
@@ -25,21 +38,17 @@ contract MigrationDistributor is Ownable {
     event DistributeTokens(uint64 depositId, address recipient, uint256 amount);
     event SetTransferDelay(uint256 transferDelay);
 
-    IERC20 public baseToken;
-    address public migrationRecorder;
-    address public migrationProcessor;
     uint256 public conversionRate;
     uint256 public transferDelay;
-
-    struct Deposit {
-        address recipient;
-        uint256 amount;
-        uint256 baseAmount;
-        uint256 timestamp;
-    }
-
+    address public migrationRecorder;
+    address public migrationProcessor;
+    IERC20 public baseToken;
+    // depositStatuses will be used by the relayer to track unprocessed deposits
+    DepositStatus[] depositStatuses;
     mapping(uint64 => Deposit) public deposits;
     mapping(address => uint64[]) public userDepositIds;
+    // depositStatusIndexes will track array index of depositStatuse array for quick retrieval inorder to avoid looping
+    mapping(uint64 depositId => uint256 statusIndex) depositStatusIndexes; 
 
     modifier onlyMigrationRecorder() {
         if (msg.sender != migrationRecorder) {
@@ -93,6 +102,15 @@ contract MigrationDistributor is Ownable {
             timestamp: block.timestamp
         });
         userDepositIds[recipient].push(depositId);
+        
+        depositStatusIndexes[depositId] = depositStatuses.length;
+
+        // required by relayer to track unprocessed transactions
+        depositStatuses.push(DepositStatus({
+            depositId: depositId,
+            isProcessed: false
+        }));
+
         emit RecordDeposit(depositId, recipient, amount);
         return depositId;
     }
@@ -119,6 +137,11 @@ contract MigrationDistributor is Ownable {
         uint256 baseAmount = _getBaseAmount(deposit.amount);
 
         deposits[depositId].baseAmount = baseAmount;
+       
+        uint256 statusIndex = depositStatusIndexes[depositId];
+        
+        // required by relayer to track processed deposits
+        depositStatuses[statusIndex].isProcessed = true;
 
         if (baseToken.transfer(deposit.recipient, baseAmount) == false) {
             revert MigrationDistributor__TransferFailed(deposit.recipient, baseAmount);
@@ -159,5 +182,13 @@ contract MigrationDistributor is Ownable {
 
     function isProcessed(uint64 depositId) external view returns (bool) {
         return deposits[depositId].baseAmount > 0;
+    }
+
+    function getDepositStatuses() external view returns(DepositStatus[] memory) {
+        return depositStatuses;
+    }
+
+    function getDepositStatusIndex(uint64 depositId) external view returns(uint256 statusIndex) { 
+        return depositStatusIndexes[depositId];
     }
 }
