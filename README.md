@@ -6,7 +6,7 @@ Smart contracts for the migration of $FWB tokens from ETH mainnet to Base.
 
 The $FWB migration is distinct from a standard token bridging process in three ways:
 
-1. For each 1 $FWB token on ETH mainnet a user migrates, they will receive 10 $FWB tokens on Base.
+1. For each 1 $FWB token on ETH mainnet a user migrates, they will receive 9 $FWB tokens on Base.
 2. Once $FWB is deposited to the Migration Manager contract on ETH mainnet, they cannot be withdrawn.
 3. The owner of the Migration Manager contract can burn $FWB tokens that are locked in the contract.
 
