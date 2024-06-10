@@ -4,12 +4,14 @@ import {Ownable} from "@openzeppelin/access/Ownable.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {MigrationDistributor} from "../src/MigrationDistributor.sol";
 import {MigrationManager} from "../src/MigrationManager.sol";
-import {TestToken} from "./TestToken.sol";
+import {TestToken , TestTokenFailedTransfer} from "./TestToken.sol";
 
 contract MigrationDistributorTest is Test {
     event RecordDeposit(uint64 depositId, address recipient, uint256 amount);
     event DistributeTokens(uint64 depositId, address recipient, uint256 amount);
     event SetTransferDelay(uint256 transferDelay);
+    event SetMigrationRecorder(address migrationRecorder);
+    event SetMigrationProcessor(address migrationProcessor);
 
     uint256 transferDelay = 0; 
     uint256 conversionRate = 10;
@@ -20,6 +22,8 @@ contract MigrationDistributorTest is Test {
     address USER3 = makeAddr("USER3");
     address migrationRecorder = makeAddr("migrationRecorder");
     address migrationProcessor = makeAddr("migrationProcessor");
+    address migrationRecorder2 = makeAddr("migrationRecorder2");
+    address migrationProcessor2 = makeAddr("migrationProcessor2");
 
     function setUp() public {
         fwb = new TestToken();
@@ -65,6 +69,14 @@ contract MigrationDistributorTest is Test {
         vm.stopPrank();
     }
 
+    function test_recordDeposit_reverts_with_MigrationDistributor__DepositExists() public {
+        vm.startPrank(migrationRecorder);
+        md.recordDeposit(1, USER1, 100 ether);
+        vm.expectRevert(abi.encodeWithSelector(MigrationDistributor.MigrationDistributor__DepositExists.selector, 1));
+        md.recordDeposit(1, USER1, 100 ether);
+        vm.stopPrank();
+    }
+
     function test_recordDeposit_succeeds() public {
         vm.startPrank(migrationRecorder);
         uint256 amount = 100 ether;
@@ -74,9 +86,11 @@ contract MigrationDistributorTest is Test {
         MigrationDistributor.Deposit memory deposit = md.getDeposit(1);
 
         assertEq(deposit.amount, amount);
+        assertEq(deposit.recipient, USER1);
         assertEq(deposit.baseAmount, 0);
         uint256 index = md.getDepositStatusIndex(1);
         assertEq(md.getDepositStatuses()[index].isProcessed, false);
+        assertEq(md.userDepositIds(USER1,0), 1);
         vm.stopPrank();
     }
 
@@ -103,6 +117,7 @@ contract MigrationDistributorTest is Test {
         assertEq(md.getDepositStatusIndex(3), 2);
         vm.stopPrank();
     }
+
 
     function test_distributeTokens_reverts_with_MigrationDistributor__TransferDelayNotElapsed() public {
         
@@ -149,6 +164,28 @@ contract MigrationDistributorTest is Test {
             )
         );
         md.distributeTokens(depositId);
+        vm.stopPrank();
+    } 
+
+    function test_distributeTokens_reverts_with_MigrationDistributor__TransferFailed() public {
+        uint64 depositId = 2;
+        uint256 amount = 100 ether;
+        vm.startPrank(msg.sender); 
+        MigrationDistributor _md = new MigrationDistributor(conversionRate,transferDelay,  address(new TestTokenFailedTransfer()), migrationRecorder, migrationProcessor);
+        vm.stopPrank();
+
+        vm.startPrank(migrationRecorder);  
+        _md.recordDeposit(depositId, USER1, amount);
+        vm.stopPrank();
+
+        vm.startPrank(migrationProcessor); 
+        uint256 baseAmount = _md.getBaseAmount(amount);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                MigrationDistributor.MigrationDistributor__TransferFailed.selector,  USER1, baseAmount 
+            )
+        );
+        _md.distributeTokens(depositId);
         vm.stopPrank();
     }
 
@@ -201,6 +238,60 @@ contract MigrationDistributorTest is Test {
         vm.expectEmit(true, true, true, true);
         emit SetTransferDelay( _transferDelay);
         _md.setTransferDelay(3 * 3600);
+        vm.stopPrank();
+    }
+
+    function test_setMigrationRecorder_reverts_with_OwnableUnauthorizedAccount() public {
+
+        vm.startPrank(msg.sender); 
+        MigrationDistributor _md = new MigrationDistributor(conversionRate, 0,  address(new TestToken()), migrationRecorder, migrationProcessor);
+        vm.stopPrank();
+
+        vm.startPrank(USER1); 
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, USER1));
+        _md.setMigrationRecorder(migrationRecorder2);
+        vm.stopPrank();
+    }
+
+    function test_setMigrationRecorder_succeeds() public {
+        vm.startPrank(msg.sender); 
+        MigrationDistributor _md = new MigrationDistributor(conversionRate, 0,  address(new TestToken()), migrationRecorder, migrationProcessor);
+        vm.expectEmit(true, true, true, true);
+        emit SetMigrationRecorder( migrationRecorder2);
+        _md.setMigrationRecorder(migrationRecorder2);
+        vm.stopPrank();
+    }
+
+    function test_setMigrationProcessor_reverts_with_OwnableUnauthorizedAccount() public {
+
+        vm.startPrank(msg.sender); 
+        MigrationDistributor _md = new MigrationDistributor(conversionRate, 0,  address(new TestToken()), migrationRecorder, migrationProcessor);
+        vm.stopPrank();
+
+        vm.startPrank(USER1); 
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, USER1));
+        _md.setMigrationProcessor(migrationProcessor2);
+        vm.stopPrank();
+    }
+
+    function test_setMigrationProcessor_succeeds() public {
+        vm.startPrank(msg.sender); 
+        MigrationDistributor _md = new MigrationDistributor(conversionRate, 0,  address(new TestToken()), migrationRecorder, migrationProcessor);
+        vm.expectEmit(true, true, true, true);
+        emit SetMigrationProcessor( migrationRecorder2);
+        _md.setMigrationProcessor(migrationRecorder2);
+        vm.stopPrank();
+    }
+
+    function test_getDeposit_succeeds() public {
+        vm.startPrank(migrationRecorder);
+        uint256 amount = 100 ether; 
+        md.recordDeposit(1, USER1, amount);
+        MigrationDistributor.Deposit memory deposit = md.getDeposit(1);
+
+        assertEq(deposit.amount, amount);
+        assertEq(deposit.recipient, USER1);
+        assertEq(deposit.baseAmount, 0); 
         vm.stopPrank();
     }
 }

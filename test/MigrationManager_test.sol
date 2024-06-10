@@ -5,7 +5,7 @@ import {Ownable} from "@openzeppelin/access/Ownable.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {MigrationManager} from "../src/MigrationManager.sol";
 import {IFWBToken} from "../src/IFWBToken.sol";
-import {TestToken} from "./TestToken.sol";
+import {TestToken, TestTokenFailedTransfer} from "./TestToken.sol";
 
 contract MigrationManagerTest is Test {
     event Deposit(uint64 indexed depositId, address indexed account, address indexed recipient, uint256 amount, uint256 timestamp);
@@ -35,6 +35,26 @@ contract MigrationManagerTest is Test {
         assertEq(address(mm.fwbToken()), address(fwb));
     }
 
+    function test_deposit_to_reverts_with_MigrationManager__ZeroAmount() public {
+        vm.startPrank(msg.sender);
+        vm.expectRevert(MigrationManager.MigrationManager__ZeroAmount.selector);
+        mm.deposit(0 ether); 
+        vm.stopPrank();
+    }
+
+    function test_deposit_to_reverts_with_MigrationManager__TransferFailed() public {
+        MigrationManager _mm;
+        uint256 amount = 100 ether;
+        // Initializations
+        vm.startPrank(msg.sender); 
+        _mm = new MigrationManager(address(new TestTokenFailedTransfer()));
+        vm.stopPrank(); 
+        vm.startPrank(USER1);
+        vm.expectRevert(abi.encodeWithSelector(MigrationManager.MigrationManager__TransferFailed.selector, USER1, amount));
+        _mm.deposit(amount);
+        vm.stopPrank();
+    }
+
     function test_deposit_succeeds() public {
         vm.startPrank(msg.sender);
         fwb.approve(address(mm), 100 ether);
@@ -46,6 +66,7 @@ contract MigrationManagerTest is Test {
         assertEq(depositInfo.recipient, msg.sender);
         assertEq(depositInfo.depositor, msg.sender);
         assertEq(depositInfo.depositId, 1);
+        assertEq(depositInfo.timestamp, vm.getBlockTimestamp());
         assertEq(mm.getDepositCount(), 1);
         assertEq(fwb.balanceOf(address(mm)), 100 ether);
         vm.stopPrank();
@@ -69,6 +90,7 @@ contract MigrationManagerTest is Test {
         assertEq(depositInfo.recipient, USER1);
         assertEq(depositInfo.depositor, msg.sender);
         assertEq(depositInfo.depositId, 1);
+        assertEq(depositInfo.timestamp, vm.getBlockTimestamp());
         assertEq(mm.getDepositCount(), 1);
         assertEq(fwb.balanceOf(address(mm)), 100 ether);
         vm.stopPrank();

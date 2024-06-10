@@ -10,14 +10,15 @@ contract Deploy is Script {
 
     function run() public returns (address migration_manager) {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        address fwbToken = vm.envAddress("ETHEREUM_FWB_TOKEN");
+        address _fwbToken = vm.envAddress("FWB_TOKEN_ETHEREUM");
         vm.startBroadcast(deployerPrivateKey); 
-        migration_manager = deploy(fwbToken);
+        migration_manager = deploy(_fwbToken);
         vm.stopBroadcast();
-        return (fwbToken);
+        return (migration_manager);
     }
 
-    function deploy(address token) public returns (address) {
+    function deploy(address token) private returns (address) {
+        /// Deploy MarketPlace
         return address(new MigrationManager(token));
     }
 }

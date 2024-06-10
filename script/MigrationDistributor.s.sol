@@ -1,6 +1,5 @@
     // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
-
 import "forge-std/Script.sol";
 
 import { MigrationDistributor } from "../src/MigrationDistributor.sol";
@@ -16,17 +15,17 @@ contract Deploy is Script {
         return (migration_distributor);
     }
 
-    function deploy() public returns (address) { 
+    function deploy() private returns (address) { 
         uint256 _conversionRate = vm.envUint("MIGRATION_DISTRIBUTOR_CONVERSION_RATE");
         uint256 _transferDelay = vm.envUint("MIGRATION_DISTRIBUTOR_TRANSFER_DELAY");
-        address _baseToken = vm.envAddress("BASE_FWB_TOKEN");
+        address _fwbToken = vm.envAddress("FWB_TOKEN_BASE");
         address _migrationRecorder = vm.envAddress("MIGRATION_DISTRIBUTOR_RECORDER");
         address _migrationProcessor = vm.envAddress("MIGRATION_DISTRIBUTOR_PROCESSOR");
 
         return address(new MigrationDistributor(
             _conversionRate,
             _transferDelay,
-            _baseToken,
+            _fwbToken,
             _migrationRecorder,
             _migrationProcessor
         ));
