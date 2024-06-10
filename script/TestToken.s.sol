@@ -1,5 +1,5 @@
     // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 
@@ -9,7 +9,7 @@ contract Deploy is Script {
     function setUp() public {}
 
     function run() public returns (address test_token) {
-        uint deployerPrivateKey =  vm.envUint("DEV_PRIVATE_KEY");
+        uint deployerPrivateKey =  vm.envUint("DEPLOYER_PRIVATE_KEY");
         address deployerAccount = vm.addr(deployerPrivateKey);
         console.log('MY ACCOUNT ', deployerAccount);
         vm.startBroadcast(deployerPrivateKey); 
