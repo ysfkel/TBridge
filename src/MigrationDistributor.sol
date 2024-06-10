@@ -152,16 +152,28 @@ contract MigrationDistributor is Ownable {
         emit DistributeTokens(depositId, deposit.recipient, baseAmount);
     }
 
+     /**
+      * @notice sets transfer delay
+      * @param _transferDelay time delay in seconds before transfer
+      */
     function setTransferDelay(uint256 _transferDelay) external onlyOwner() {
         transferDelay = _transferDelay;
         emit SetTransferDelay(_transferDelay);
     }
-
+    
+    /**
+     * @notice sets _migrationRecorder
+     * @param _migrationRecorder address of _migrationRecorder
+     */
     function setMigrationRecorder(address _migrationRecorder) external onlyOwner {
         migrationRecorder = _migrationRecorder;
         emit SetMigrationRecorder(_migrationRecorder);
     }
-
+    
+    /**
+     * @notice sets the address of _migrationProcessor
+     * @param _migrationProcessor address of _migrationProcessor
+     */
     function setMigrationProcessor(address _migrationProcessor) external onlyOwner {
         migrationProcessor = _migrationProcessor;
         emit SetMigrationProcessor(_migrationProcessor);
