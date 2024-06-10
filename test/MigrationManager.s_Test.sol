@@ -18,7 +18,7 @@ contract MigrationManagerDeployTest is Test {
     function testDeployment() public {
        // Set environment variables 
        _fwbToken = address(new TestToken()); 
-       vm.setEnv("FWB_TOKEN", vm.toString(_fwbToken)); 
+       vm.setEnv("FWB_TOKEN_ETHEREUM", vm.toString(_fwbToken)); 
        // Execute the deploy script
        deployScript.setUp();
        address migrationManager = deployScript.run();

@@ -9,8 +9,8 @@ contract Deploy is Script {
     function setUp() public {}
 
     function run() public returns (address migration_manager) {
-        uint256 deployerPrivateKey = vm.envUint("DEV_PRIVATE_KEY");
-        address _fwbToken = vm.envAddress("FWB_TOKEN");
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        address _fwbToken = vm.envAddress("FWB_TOKEN_ETHEREUM");
         vm.startBroadcast(deployerPrivateKey); 
         migration_manager = deploy(_fwbToken);
         vm.stopBroadcast();

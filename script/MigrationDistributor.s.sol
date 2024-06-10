@@ -8,7 +8,7 @@ contract Deploy is Script {
     function setUp() public {}
 
     function run() public returns (address migration_distributor) {
-        uint256 deployerPrivateKey = vm.envUint("DEV_PRIVATE_KEY");      
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");      
         vm.startBroadcast(deployerPrivateKey); 
         migration_distributor = deploy();
         vm.stopBroadcast();
