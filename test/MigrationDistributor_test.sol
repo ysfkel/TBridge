@@ -65,6 +65,14 @@ contract MigrationDistributorTest is Test {
         vm.stopPrank();
     }
 
+    function test_recordDeposit_reverts_with_MigrationDistributor__DepositExists() public {
+        vm.startPrank(migrationRecorder);
+        md.recordDeposit(1, USER1, 100 ether);
+        vm.expectRevert(abi.encodeWithSelector(MigrationDistributor.MigrationDistributor__DepositExists.selector, 1));
+        md.recordDeposit(1, USER1, 100 ether);
+        vm.stopPrank();
+    }
+
     function test_recordDeposit_succeeds() public {
         vm.startPrank(migrationRecorder);
         uint256 amount = 100 ether;
@@ -74,9 +82,11 @@ contract MigrationDistributorTest is Test {
         MigrationDistributor.Deposit memory deposit = md.getDeposit(1);
 
         assertEq(deposit.amount, amount);
+        assertEq(deposit.recipient, USER1);
         assertEq(deposit.baseAmount, 0);
         uint256 index = md.getDepositStatusIndex(1);
         assertEq(md.getDepositStatuses()[index].isProcessed, false);
+        assertEq(md.userDepositIds(USER1,0), 1);
         vm.stopPrank();
     }
 
@@ -103,6 +113,7 @@ contract MigrationDistributorTest is Test {
         assertEq(md.getDepositStatusIndex(3), 2);
         vm.stopPrank();
     }
+
 
     function test_distributeTokens_reverts_with_MigrationDistributor__TransferDelayNotElapsed() public {
         
