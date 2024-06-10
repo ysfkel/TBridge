@@ -51,3 +51,32 @@ $ forge fmt
 ```shell
 $ forge snapshot
 ```
+
+# Project Structure
+
+## Contracts
+
+Solidity smart contracts are located in the `./src/` directory:
+
+- **`IFWBToken.sol`**: Interface for the FWB Token, defining the necessary methods and standards.
+- **`MigrationDistributor.sol`**: Manages the distribution of FWB tokens during the migration process.
+- **`MigrationManager.sol`**: Oversees and manages the entire migration process.
+
+## Deployment Scripts
+
+Deployment scripts are found in the `./script/` folder. These Solidity scripts are used to deploy the contracts using `forge script` (ex. `forge script script/MigrationManager.s.sol:Deploy`):
+
+- **`MigrationDistributor.s.sol`**: Script to deploy the `MigrationDistributor` contract.
+- **`MigrationManager.s.sol`**: Script to deploy the `MigrationManager` contract.
+- **`TestToken.s.sol`**: Script to deploy the `TestToken` for testing purposes.
+
+Additionally, shell scripts for deployment are located in the `./deploy/` folder:
+
+- **`dev.sh`**: Used to deploy the contracts in a development environment.
+
+To deploy the contracts locally, follow these steps:
+1. Copy `./.env.example` to `./.env` in the project root.
+2. Replace deployer's private key and other necessary variables to the `.env` file:
+3. Start `anvil`
+4. Run each of the deployment scripts individually, or by running `./dev.sh` in the deploy directory
+
