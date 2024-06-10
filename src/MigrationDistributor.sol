@@ -37,6 +37,8 @@ contract MigrationDistributor is Ownable {
     event RecordDeposit(uint64 depositId, address recipient, uint256 amount);
     event DistributeTokens(uint64 depositId, address recipient, uint256 amount);
     event SetTransferDelay(uint256 transferDelay);
+    event SetMigrationRecorder(address migrationRecorder);
+    event SetMigrationProcessor(address migrationProcessor);
 
     uint256 public conversionRate;
     uint256 public transferDelay;
@@ -155,6 +157,16 @@ contract MigrationDistributor is Ownable {
         emit SetTransferDelay(_transferDelay);
     }
 
+    function setMigrationRecorder(address _migrationRecorder) external onlyOwner {
+        migrationRecorder = _migrationRecorder;
+        emit SetMigrationRecorder(_migrationRecorder);
+    }
+
+    function setMigrationProcessor(address _migrationProcessor) external onlyOwner {
+        migrationProcessor = _migrationProcessor;
+        emit SetMigrationProcessor(_migrationProcessor);
+    }
+
     /**
      * @notice Fetches Deposit details
      * @param depositId Id of the deposit
@@ -162,14 +174,6 @@ contract MigrationDistributor is Ownable {
     function getDeposit(uint64 depositId) external view returns (Deposit memory) {
         Deposit memory deposit = deposits[depositId];
         return deposit;
-    }
-
-    function changeMigrationRecorder(address newMigrationRecorder) external onlyOwner {
-        migrationRecorder = newMigrationRecorder;
-    }
-
-    function changeMigrationProcessor(address newMigrationProcessor) external onlyOwner {
-        migrationProcessor = newMigrationProcessor;
     }
 
     function getBaseAmount(uint256 amount) external view returns (uint256) {

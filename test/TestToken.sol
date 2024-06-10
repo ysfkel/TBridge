@@ -12,3 +12,15 @@ contract TestToken is ERC20("test", "test") {
         _burn(msg.sender, value);
     }
 }
+
+contract TestTokenFailedTransfer is ERC20("test", "test") {
+ 
+    function transfer(address , uint256 ) public override returns (bool) {
+        return false;
+    }
+
+    function transferFrom(address , address , uint256 ) public override returns (bool) {
+        return false;
+    }
+}
+
