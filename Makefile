@@ -1,20 +1,10 @@
 
 # Define the target
-.PHONY: deploy
+.PHONY: deploy_local deploy_testnet
 
-# Detect the operating system and set the appropriate shell command
-ifeq ($(OS), Windows_NT)
-    RUN_SCRIPT := cmd /c dev.sh
-else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S), Linux)
-        RUN_SCRIPT := ./deploy/dev.sh
-    endif
-    ifeq ($(UNAME_S), Darwin)
-        RUN_SCRIPT := ./deploy/dev.sh
-    endif
-endif
+# Define commands to run the shell scripts
+deploy_local:
+	./deploy/dev.sh
 
-# Define the command to run the shell script
-deploy:
-	$(RUN_SCRIPT)
+deploy_testnet:
+	./deploy/testnet.sh
