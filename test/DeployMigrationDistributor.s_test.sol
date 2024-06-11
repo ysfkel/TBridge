@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 import "forge-std/Test.sol";
-import { Deploy } from "../script/MigrationDistributor.s.sol";
+import { Deploy } from "../script/DeployMigrationDistributor.s.sol";
 import { MigrationDistributor } from "../src/MigrationDistributor.sol";
 
 contract MigrationDistributorDeployTest is Test {
