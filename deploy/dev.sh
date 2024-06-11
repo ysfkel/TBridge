@@ -10,18 +10,28 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+FWB_TOKEN_ETHEREUM=$(echo "$DEPLOY_OUTPUT" | grep -Eo '0x[a-fA-F0-9]{40}' | head -1)
+
+DEPLOY_OUTPUT=$(forge script script/TestToken.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast)
+
+if [ $? -ne 0 ]; then
+    echo "Failed to deploy TestToken.sol"
+    exit 1
+fi
+
 FWB_TOKEN_BASE=$(echo "$DEPLOY_OUTPUT" | grep -Eo '0x[a-fA-F0-9]{40}' | head -1)
 
 echo "TOKEN DEPLOYED AT: " $FWB_TOKEN_BASE
 
 # Deploy MigrationManager.sol
 echo "Deploying MigrationManager.sol..."
-DEPLOY_OUTPUT=$(forge script script/DeployMigrationManager.s.sol:Deploy  --rpc-url http://127.0.0.1:8545 --broadcast)
+DEPLOY_OUTPUT=$(FWB_TOKEN_ETHEREUM=$FWB_TOKEN_ETHEREUM forge script script/DeployMigrationManager.s.sol:Deploy  --rpc-url http://127.0.0.1:8545 --broadcast)
 
 if [ $? -ne 0 ]; then
     echo "Failed to deploy MigrationManager.sol"
     exit 1
 fi
+
 MIGRATION_MANAGER_ADDRESS=$(echo "$DEPLOY_OUTPUT" | grep -Eo '0x[a-fA-F0-9]{40}' | head -1)
 echo "MIGRATION MANAGER DEPLOYED AT: " $MIGRATION_MANAGER_ADDRESS
 
