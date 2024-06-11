@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 import "forge-std/Test.sol";
-import { Deploy } from "../script/MigrationManager.s.sol";
+import { Deploy } from "../script/DeployMigrationManager.s.sol";
 import { MigrationManager } from "../src/MigrationManager.sol";
 import { TestToken } from "./TestToken.sol";
 
