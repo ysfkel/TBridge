@@ -64,7 +64,7 @@ Solidity smart contracts are located in the `./src/` directory:
 
 ## Deployment Scripts
 
-Deployment scripts are found in the `./script/` folder. These Solidity scripts are used to deploy the contracts using `forge script` (ex. `forge script script/MigrationManager.s.sol:Deploy`):
+Deployment scripts are found in the `./script/` folder. These Solidity scripts are used to deploy the contracts using `forge script` (ex. `forge script script/DeployMigrationManager.s.sol:Deploy`):
 
 - **`DeployMigrationDistributor.s.sol`**: Script to deploy the `MigrationDistributor` contract.
 - **`DeployMigrationManager.s.sol`**: Script to deploy the `MigrationManager` contract.
@@ -73,7 +73,7 @@ Deployment scripts are found in the `./script/` folder. These Solidity scripts a
 Additionally, shell scripts for deployment are located in the `./deploy/` folder:
 
 - **`dev.sh`**: Used to deploy the contracts in a development environment.
-- **`testnet.sh`**: Used to deploy the contracts in a development environment.
+- **`testnet.sh`**: Used to deploy the contracts in a testnet environment.
 
 To deploy the contracts locally, follow these steps:
 1. Copy `./.env.example` to `./.env` in the project root.
