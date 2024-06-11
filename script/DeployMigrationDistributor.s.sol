@@ -19,11 +19,8 @@ contract Deploy is Script {
         uint256 _conversionRate = vm.envUint("MIGRATION_DISTRIBUTOR_CONVERSION_RATE");
         uint256 _transferDelay = vm.envUint("MIGRATION_DISTRIBUTOR_TRANSFER_DELAY");
         address _fwbToken = vm.envAddress("FWB_TOKEN_BASE");
-        uint256 _migrationRecorderUint = vm.envUint("MIGRATION_DISTRIBUTOR_RECORDER");
-        uint256 _migrationProcessorUint = vm.envUint("MIGRATION_DISTRIBUTOR_PROCESSOR");
-
-        address _migrationRecorder = vm.addr(_migrationRecorderUint);
-        address _migrationProcessor = vm.addr(_migrationProcessorUint);
+        address _migrationRecorder = vm.envAddress("MIGRATION_DISTRIBUTOR_RECORDER");
+        address _migrationProcessor = vm.envAddress("MIGRATION_DISTRIBUTOR_PROCESSOR");
 
         return address(new MigrationDistributor(
             _conversionRate,
