@@ -12,6 +12,8 @@ fi
 
 FWB_TOKEN_ETHEREUM=$(echo "$DEPLOY_OUTPUT" | grep -Eo '0x[a-fA-F0-9]{40}' | head -1)
 
+echo "FWB_TOKEN_ETHEREUM DEPLOYED AT: " $FWB_TOKEN_ETHEREUM
+
 DEPLOY_OUTPUT=$(forge script script/TestToken.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast)
 
 if [ $? -ne 0 ]; then
@@ -21,7 +23,7 @@ fi
 
 FWB_TOKEN_BASE=$(echo "$DEPLOY_OUTPUT" | grep -Eo '0x[a-fA-F0-9]{40}' | head -1)
 
-echo "TOKEN DEPLOYED AT: " $FWB_TOKEN_BASE
+echo "FWB_TOKEN_BASE DEPLOYED AT: " $FWB_TOKEN_BASE
 
 # Deploy MigrationManager.sol
 echo "Deploying MigrationManager.sol..."
