@@ -48,7 +48,7 @@ contract MigrationDistributor is Ownable {
     // depositStatuses will be used by the relayer to track unprocessed deposits
     DepositStatus[] depositStatuses;
     mapping(uint64 => Deposit) public deposits;
-    mapping(address => uint64[]) public userDepositIds;
+    mapping(address => uint64[]) public depositIds;
     // depositStatusIndexes will track array index of depositStatuse array for quick retrieval inorder to avoid looping
     mapping(uint64 depositId => uint256 statusIndex) depositStatusIndexes; 
 
@@ -103,7 +103,7 @@ contract MigrationDistributor is Ownable {
             baseAmount: 0, /* baseAmount will be updated when distribution is complete */
             timestamp: block.timestamp
         });
-        userDepositIds[recipient].push(depositId);
+        depositIds[recipient].push(depositId);
         
         depositStatusIndexes[depositId] = depositStatuses.length;
 
@@ -193,6 +193,7 @@ contract MigrationDistributor is Ownable {
     }
 
     function _getBaseAmount(uint256 amount) private view returns (uint256) {
+
         return amount * conversionRate;
     }
 
@@ -206,5 +207,9 @@ contract MigrationDistributor is Ownable {
 
     function getDepositStatusIndex(uint64 depositId) external view returns(uint256 statusIndex) { 
         return depositStatusIndexes[depositId];
+    }
+
+    function getDepositIds(address account) external view returns(uint64[] memory) {
+       return depositIds[account];
     }
 }

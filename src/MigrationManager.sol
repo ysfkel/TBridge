@@ -110,4 +110,8 @@ contract MigrationManager is Ownable {
     function _getNextDepositId() private returns (uint64) {
         return ++_depositCount;
     }
+
+    function getDepositIds(address account) external view returns(uint64[] memory) {
+       return depositIds[account];
+    }
 }

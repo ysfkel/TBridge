@@ -90,7 +90,7 @@ contract MigrationDistributorTest is Test {
         assertEq(deposit.baseAmount, 0);
         uint256 index = md.getDepositStatusIndex(1);
         assertEq(md.getDepositStatuses()[index].isProcessed, false);
-        assertEq(md.userDepositIds(USER1,0), 1);
+        assertEq(md.depositIds(USER1,0), 1);
         vm.stopPrank();
     }
 

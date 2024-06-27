@@ -13,3 +13,5 @@ docs/
 
 # System files
 .DS_Store
+
+.deps/
