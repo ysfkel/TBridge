@@ -2,14 +2,14 @@
 pragma solidity 0.8.26;
 
 import "./IFWBToken.sol";
-import "@openzeppelin/access/Ownable.sol";
+import "@openzeppelin/access/Ownable2Step.sol";
 
 /**
  * @title MigrationManager
  * @notice This contract facilitates the exchange of $FWB on ETH mainnet
  *  for a corresponding amount of Base $FWB.
  */
-contract MigrationManager is Ownable {
+contract MigrationManager is Ownable2Step {
     error MigrationManager__ZeroAmount();
     error MigrationManager__ZeroAddressRecipient();
     error MigrationManager__ZeroAddressFwbToken();

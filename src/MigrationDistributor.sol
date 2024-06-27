@@ -2,13 +2,13 @@
 pragma solidity 0.8.26;
 
 import "@openzeppelin/token/ERC20/IERC20.sol";
-import "@openzeppelin/access/Ownable.sol";
+import "@openzeppelin/access/Ownable2Step.sol";
 /**
  * @title MigrationDistributor
  * @notice This contract facilitates the transfer of Base $FWB tokens to users who have locked
  * their tokens in the Migration Manager contract on ETH mainnet
  */
-contract MigrationDistributor is Ownable {
+contract MigrationDistributor is Ownable2Step {
     
     struct Deposit {
         address recipient;
