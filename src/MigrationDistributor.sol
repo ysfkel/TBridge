@@ -145,7 +145,7 @@ contract MigrationDistributor is Ownable {
         // required by relayer to track processed deposits
         depositStatuses[statusIndex].isProcessed = true;
 
-        if (baseToken.transfer(deposit.recipient, baseAmount) == false) {
+        if (!baseToken.transfer(deposit.recipient, baseAmount)) {
             revert MigrationDistributor__TransferFailed(deposit.recipient, baseAmount);
         }
 

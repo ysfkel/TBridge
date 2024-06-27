@@ -101,7 +101,7 @@ contract MigrationManager is Ownable {
 
         depositIds[msg.sender].push(depositId);
 
-        if (fwbToken.transferFrom(msg.sender, address(this), amount) == false) {
+        if (!fwbToken.transferFrom(msg.sender, address(this), amount)) {
             revert MigrationManager__TransferFailed(msg.sender, amount);
         }
         emit Deposit(depositId, msg.sender, recipient, amount, timestamp);
